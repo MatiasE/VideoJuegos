@@ -1,0 +1,14 @@
+{
+  "short_name": "Recorre Mundos",
+  "name": "Jorge Rubiano",  
+  "icons": [
+  				{
+  					"src": "img/personaje.png",
+  					"sizes": "96x96",
+  					"type": "image/png"
+  				}
+  		   ],
+  "start_url": "index.html",
+  "display": "fullscreen",
+  "orientation": "portrait"
+}

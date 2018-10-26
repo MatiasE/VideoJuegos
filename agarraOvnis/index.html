@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Phaser -->
+    <script type="text/javascript" src="js/phaser.min.js"></script>
+    <script type="text/javascript" src="js/phaser.js"></script>
+    <script type="text/javascript" src="js_1/phaser.min.js"></script>
+    <title>Mi primer juego</title>
+</head>
+<body>
+    <script type="text/javascript">
+        var plataformas;
+        var platillos;
+        var marciano;
+        var controles;
+        var score = 0;
+        var textoScore;
+        var fondo, boom;
+
+		var marte = new Phaser.Game(800, 600, Phaser.AUTO, 'marte', {preload: preload, create: create, update: update});
+		
+		function preload() {
+			/*
+			Aqui se cargaran los sprites. 
+			*/
+			marte.load.image('espacio','sprites/espacio.png');
+			marte.load.image('platillo','sprites/disc.png');
+            marte.load.image('barra','sprites/plataforma.png');
+            marte.load.spritesheet('marciano', 'sprites/marciano.png', 32, 48);
+            marte.load.audio('fondo', 'audio/shampoo.mp3');
+            marte.load.audio('boom', 'audio/numKey.wav');
+		}
+		
+		function create() {
+            // Agregar fisica
+            marte.physics.startSystem(Phaser.Physics.ARCADE);
+			
+			//Aqui se agrega el fondo. 
+			marte.add.sprite(0, 0, 'espacio'); 
+
+            // Agrego grupos, lo hago cuerpo para que sea afectado por la fisica, y 
+            // el tipo de cuerpo fisico es ARCADE.
+            plataformas = marte.add.group();
+            plataformas.enableBody = true;
+
+            fondo = marte.add.audio('fondo');
+            boom = marte.add.audio('boom');
+
+            fondo.play('', 0, 0.5, true);
+            
+            /* platillos.physicsBodyType = Phaser.Physics.ARCADE;
+
+            for (var i = 0; i < 10; i++) {
+                var platillo = platillos.create(100 + i * 50, 50, 'platillo');
+                // Agrega fisica.
+                platillo.body.collideWorldBounds = true;
+                platillo.body.gravity.x = marte.rnd.integerInRange(-50, 50);
+                platillo.body.gravity.y = 100 + (Math.random() * 100);
+                platillo.body.bounce.setTo(0.8);
+            }
+            */
+
+            var piso = plataformas.create(0, marte.world.height - 64, 'barra');
+            piso.scale.setTo(2, 2);
+            piso.body.immovable = true;
+
+            var barra = plataformas.create(-180, 400, 'barra');
+            barra.body.immovable = true;
+
+            barra = plataformas.create(400, 300, 'barra');
+            barra.body.immovable = true;
+
+            barra = plataformas.create(600, 150, 'barra');
+            barra.body.immovable = true;
+
+            // Agregar marciano.
+            marciano = marte.add.sprite(32, marte.world.height - 160, 'marciano');
+            marte.physics.arcade.enable(marciano);
+            marciano.body.bounce.y = 0.3;
+            marciano.body.gravity.y = 300;
+            marciano.body.collideWorldBounds = true;
+
+            marciano.animations.add('izquierda',[0, 1, 2, 3], 10, true);
+            marciano.animations.add('derecha',[5, 6, 7, 8], 10, true);
+
+            // Agregar platillos.
+            platillos = marte.add.group();
+            platillos.enableBody = true;
+
+            for (var i = 0; i < 10; i++) {
+                var platillo = platillos.create(50 + i * 55, 0, 'platillo');
+                platillo.body.collideWorldBounds = true;
+                platillo.body.gravity.x = marte.rnd.integerInRange(-50, 50);
+                platillo.body.gravity.y = 100 + (Math.random() * 100);
+
+                platillo.body.bounce.setTo(0.8);
+            }
+            
+            textoScore = marte.add.text(20, 20, 'Marcador: 0',{fontsize: '36px', fill: '#fff'});
+            controles = marte.input.keyboard.createCursorKeys();
+		}
+		
+		function update() {
+			marte.physics.arcade.collide(platillos, plataformas);
+            marte.physics.arcade.collide(marciano, plataformas);
+            marte.physics.arcade.overlap(marciano, platillos, recolectar, null, this);
+
+            marciano.body.velocity.x = 0;
+            
+            if(controles.left.isDown){
+                marciano.body.velocity.x = -150;
+                marciano.animations.play('izquierda');
+            } else if(controles.right.isDown){
+                marciano.body.velocity.x = 150;
+                marciano.animations.play('derecha');
+            } else {
+                marciano.animations.stop();
+                marciano.frame = 4;
+            }
+
+            if(controles.up.isDown && marciano.body.touching.down){
+                marciano.body.velocity.y = -350;
+            }
+
+            function recolectar(mar, pla){
+                pla.kill();
+                score += 10;
+                textoScore.text = 'Marcador: ' + score;
+                boom.play();
+            }
+		}
+    </script>
+</body>
+</html>

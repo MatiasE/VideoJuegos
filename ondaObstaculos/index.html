@@ -1,0 +1,198 @@
+<html>
+    <!-- Game code developed by Matias Iacono, Patricio Marrone, with art from Carla Corcoba and Alejandro -->
+    <body style="border: 0; margin: 0;">
+        <canvas id="canvas" width="640" height="480"></canvas>
+
+        <script language="Javascript" src="framework/jsGFwk.js"></script>
+        <script language="Javascript" src="framework/jsGFwk2dFastAnimation.js"></script>
+        <script language="Javascript" src="framework/jsGFwkFonts.js"></script>
+        <script language="Javascript" src="framework/jsGFwkIO.js"></script>
+        <script language="Javascript" src="framework/jsGFwkCollisions.js"></script>
+        <script language="Javascript" src="framework/jsGFwkContainer.js"></script>
+        <script language="Javascript" src="framework/jsGFwkGamepad.js"></script>
+        <script language="Javascript" src="framework/jsGFwkRM.js"></script>
+	    <script language="Javascript" src="framework/jsGFwkSprites.js"></script>
+        <script language="Javascript" src="framework/jsGFwkWebStorage.js"></script>
+        <script language="Javascript" src="framework/jsGFwkScenes.js"></script>
+        <script language="Javascript" src="framework/jsGFwkWebStorage.js"></script>
+        <script language="Javascript" src="framework/jsGFwkGamepad.js"></script>
+        <script language="Javascript" src="framework/jsGFwkUtils.js"></script>
+        <script language="Javascript" src="framework/jsGFwkTimers.js"></script>
+        <script language="Javascript" src="framework/jsGFwkJukebox.js"></script>
+        <script language="Javascript" src="framework/alarm.js"></script>
+        <script language="Javascript" src="glfx.js"></script>
+        <script language="Javascript" src="curve.js"></script>
+        <script language="Javascript" src="block.js"></script>
+        <script language="Javascript" src="levelController.js"></script>
+        <script language="Javascript" src="mapBuilder.js"></script>
+        <script language="Javascript" src="foreground.js"></script>
+        <script language="Javascript" src="background.js"></script>
+        <script language="Javascript" src="particles.js"></script>
+        <script language="Javascript" src="screenMessages.js"></script>
+        <script>
+
+            jsGFwk.settings.canvas = "canvas";
+            jsGFwk.settings.clearColor = "black";
+            jsGFwk.settings.frameRate = 1000 / 60;
+
+            jsGFwk.include("FastAnimation");
+            jsGFwk.include("IO");
+            jsGFwk.include("Collisions");
+            jsGFwk.include("Gamepad");
+            jsGFwk.include("ResourceManager");
+    		jsGFwk.include("Sprites");
+            jsGFwk.include("Fonts");
+            jsGFwk.include("Storage");
+            jsGFwk.include("Scenes");
+            jsGFwk.include("Utils");
+
+            jsGFwk.Fonts.createFont({ name: 'zxBold', source: 'fonts/zxBold.ttf' });
+            jsGFwk.Fonts.createFont({ name: 'open24display', source: 'fonts/open24display.ttf' });
+
+            var globalObjects = {
+                fx: {
+                    glCanvas: null,
+                    glTexture: null
+                }
+            };
+            var greenHit = {};
+            var blueHit = {};
+            var redHit = {};
+            var splash = new Image();
+
+            splash.onload = function () {
+                jsGFwk.start();
+            };
+            splash.src = "images/backgroundblu.png";
+
+            jsGFwk.ResourceManager.addGraphic({ name: "intro", source: "images/intro.png" });
+            jsGFwk.ResourceManager.addGraphic({ name: "map1", source: "images/map1.png" });
+            jsGFwk.ResourceManager.addGraphic({ name: "map2", source: "images/map2.png" });
+            jsGFwk.ResourceManager.addGraphic({ name: "map3", source: "images/map3.png" });
+            jsGFwk.ResourceManager.addGraphic({ name: "map4", source: "images/map4.png" });
+            jsGFwk.ResourceManager.addGraphic({ name: "foreground", source: "images/scanlines.png" });
+            jsGFwk.ResourceManager.addGraphic({ name: "background", source: "images/background.png" });
+            jsGFwk.ResourceManager.addGraphic({	name: "ball", source: "images/ball.png" });
+            jsGFwk.ResourceManager.addGraphic({	name: "balldie", source: "images/ball-die.png" });
+            jsGFwk.ResourceManager.addGraphic({	name: "blueball", source: "images/blueball.png" });
+            jsGFwk.ResourceManager.addGraphic({	name: "redball", source: "images/redball.png" });
+            jsGFwk.ResourceManager.addGraphic({	name: "greenball", source: "images/greenball.png" });
+
+            var sound = {};
+                sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "sounds/die.mp3" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/die.ogg" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/die.wav" };
+            jsGFwk.ResourceManager.addSound({ name: "die", sources: sound});
+
+            var sound = {};
+                sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "sounds/die2.mp3" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/die2.ogg" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/die2.wav" };
+            jsGFwk.ResourceManager.addSound({ name: "die2", sources: sound});
+
+            var sound = {};
+                sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "sounds/health.mp3" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/health.ogg" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/health.wav" };
+            jsGFwk.ResourceManager.addSound({ name: "health", sources: sound});
+
+            var sound = {};
+                sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "sounds/hurt.mp3" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/hurt.ogg" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/hurt.wav" };
+            jsGFwk.ResourceManager.addSound({ name: "hurt", sources: sound});
+
+            var sound = {};
+                sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "sounds/points.mp3" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/points.ogg" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/points.wav" };
+            jsGFwk.ResourceManager.addSound({ name: "points", sources: sound});
+
+            var sound = {};
+                sound[jsGFwk.ResourceManager.sounds.format.mp3] = { source: "sounds/sino.mp3" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/sino.ogg" };
+                sound[jsGFwk.ResourceManager.sounds.format.ogg] = { source: "sounds/sino.wav" };
+            jsGFwk.ResourceManager.addSound({ name: "music", sources: sound});
+
+            jsGFwk.createObject({
+                id: "progress",
+                visible: true,
+                barWidth: 0,
+                dotCounter: 0,
+                init: function() {
+                    jsGFwk.ResourceManager.onResourcesLoadedCompleted = function() {
+
+                        jsGFwk.Sprites.createSpriteCollection("player",
+                            jsGFwk.ResourceManager.graphics.ball.image,
+                                jsGFwk.Utils.makeAtlas(40, 40, 24, false));
+                        jsGFwk.Sprites.player.loop(true);
+
+                        jsGFwk.Sprites.createSpriteCollection("playerDead",
+                            jsGFwk.ResourceManager.graphics.balldie.image,
+                                jsGFwk.Utils.makeAtlas(40, 40, 11, false));
+
+                        jsGFwk.Sprites.createSpriteCollection("enemy",
+                            jsGFwk.ResourceManager.graphics.redball.image,
+                                jsGFwk.Utils.makeDoubleAtlas(40, 40, 12, false));
+                        jsGFwk.Sprites.enemy.loop(true);
+
+                        jsGFwk.Sprites.createSpriteCollection("blue",
+                            jsGFwk.ResourceManager.graphics.blueball.image,
+                                jsGFwk.Utils.makeDoubleAtlas(40, 40, 12, true));
+                        jsGFwk.Sprites.blue.loop(true);
+
+                        jsGFwk.Sprites.createSpriteCollection("green",
+                            jsGFwk.ResourceManager.graphics.greenball.image,
+                                jsGFwk.Utils.makeDoubleAtlas(40, 40, 12, false));
+                        jsGFwk.Sprites.green.loop(true);
+
+                        globalObjects.blockContainer = jsGFwk.Container.createContainer('block', Block, true);
+                        globalObjects.particleContainer = jsGFwk.Container.createContainer('particle', Particle, true);
+
+                        jsGFwk.Scenes.create({name: "game",
+                            gameObjects: [Background,
+                                          globalObjects.blockContainer,
+                                          Curve,
+                                          globalObjects.particleContainer,
+                                          LevelController,
+                                          ScreenMessages,
+                                          Foreground
+                                          ]});
+
+                        var source = jsGFwk.FastAnimation._canvas;
+                        globalObjects.fx.glCanvas = fx.canvas();
+                        globalObjects.fx.glTexture = globalObjects.fx.glCanvas.texture(source);
+                        source.parentNode.insertBefore(globalObjects.fx.glCanvas, source);
+                        source.style.display = 'none';
+
+                        jsGFwk.ResourceManager.sounds.music.audio.loop = true;
+                        jsGFwk.ResourceManager.sounds.music.audio.volume = 0.4;
+                        jsGFwk.ResourceManager.sounds.music.audio.play();
+
+                        redHit = new jsGFwk.Jukebox({volume: 0.6, channels: 5, source: jsGFwk.ResourceManager.sounds.hurt });
+                        greenHit = new jsGFwk.Jukebox({volume: 0.6, channels: 5, source: jsGFwk.ResourceManager.sounds.points });
+                        blueHit = new jsGFwk.Jukebox({volume: 0.6, channels: 5, source: jsGFwk.ResourceManager.sounds.health });
+
+                        jsGFwk.Scenes.scenes.game.enable();
+                        jsGFwk._gameObjects.progress.destroy();
+                    };
+                },
+                update: function(delta) {
+                    this.dotCounter++;
+                    this.dotCounter = this.dotCounter % 5;
+                },
+                draw: function (context) {
+                    var s = "";
+                    for (var i = 0; i < this.dotCounter; i++) {
+                        s += ".";
+                    }
+
+                    context.drawImage(splash, 0, 0);
+                    context.fillStyle = "white";
+                    context.font = "20pt open24display";
+                    context.fillText("Tuning" + s, 50, 450);
+                }
+            });
+        </script>
+    </body>
+</html>
